@@ -1,0 +1,54 @@
+Treuzell kernel module
+===================================
+
+Treuzell is the Breton word for a bridge. This kernel module works as a bridge
+between the interface of a Prophesee sensor, such as a dedicated IP instantiated
+in a FPGA fabric, or a MIPI CSI interface, and a communication medium more
+widely used on computeurs, such as USB3.
+
+The module is split in sevral parts as follow:
+
+## Psee Video
+
+The Prophesee video driver provides methods for register read and write on the
+video IP (including the sensor when the IP intergrates the bus master) and get
+the event stream from the sensor. Currently, the only supported interface is
+Prophesee's video IP directly mapped on AXI, but other implementations, such as
+a standard CSI interface for data and an I2C link for register access, should
+be developed in the future.
+
+
+Required properties:
+  - compatible: should be "psee,video".
+  - reg: physical base address of FPGA registers and length of memory mapped
+    region.
+  - dmas: list of DMA and channel numbers that the driver may use.
+  - dma-names: identifiers for the DMA channels. The driver will use the channel
+    called "output" to get the event stream out of the video IP.
+
+Optional properties:
+  - memory-region: reserved memory to be converted to mem resource and declared
+    as coherent memory to be used for DMA allocations
+
+Example:
+
+	zynq_ps_axi_lite: zynq_ps_axi_lite@a0000000 {
+		compatible ="psee,video";
+		reg = <0x0 0xa0000000 0x0 0x40000>;
+		dmas = <&zynq_processing_system_u_axi_dma 0
+			&zynq_processing_system_u_axi_dma 1>;
+		dma-names = "input", "output";
+	};
+
+## Treuzell USB gadget function
+
+This gadget function works as a consumer for the data provided by the video
+interface. On USB, it creates an interface with a vendor-specific class,
+implementing a Prophesee proprietary (and yet undocumented) protocol, using
+subclass and protocol 0.
+
+The interface provides 2 endpoints for control, and one IN endpoint to stream
+data to the host. In alternate config, the streaming endpoint is isochronous.
+
+The control endpoints allow to read and write registers on the video interface
+and get various information on the system.

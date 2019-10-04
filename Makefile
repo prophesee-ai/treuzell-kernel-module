@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: GPL-2.0
 #
-# USB gadget allowing to control an Asynchronous Time-Based Image Sensor (ATIS)
-# interface, along with the interface driver, as a kernel module.
+# USB gadget allowing to control an Event-Based video pipeline, with the
+# sensor and the SoC interface drivers, as a kernel module.
 #
 
 ccflags-y			:= -I$(srctree)/drivers/usb/gadget/
 ccflags-y			+= -I$(srctree)/drivers/usb/gadget/udc/
 ccflags-y			+= -I$(srctree)/drivers/usb/gadget/function/
+
+treuzell-y += psee-video.o psee-i2c.o psee-spi.o f_treuzell.o
+obj-m := treuzell.o
 
 SRC := $(shell pwd)
 
